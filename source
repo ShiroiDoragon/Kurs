@@ -1,0 +1,111 @@
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
+
+typedef unsigned char BYTE;
+
+typedef struct { char type[2]; int size; int res; int off; int ssz; int w; int h; int end[7]; int padding; int pad[20]; int p = 3; } HEAD;
+
+void read_head(FILE*fin)
+{
+	HEAD str;
+	fread(str.type, 2, 1, fin);
+	fread(&str.size, 4, 1, fin);
+	fread(&str.res, 4, 1, fin);
+	fread(&str.off, 4, 1, fin);
+	fread(&str.ssz, 4, 1, fin);
+	fread(&str.w, 4, 1, fin);
+	fread(&str.h, 4, 1, fin);
+	fread(str.end, 4, 7, fin);
+}
+
+void read_rastr(FILE*fin, BYTE ***rastr)
+{
+	HEAD str;
+	int padding1 = (str.size - str.off - str.h * str.w * str.p) / h.h;
+	int i, j;
+	for (i = 0; i < h.h; i++)
+	{
+		for (j = 0; j < h.w; j++)
+			fread(&rastr[i][j], 3, 1, fin);
+		fread(str.pad, str.padding, 1, fin);
+	}
+}
+
+void work(BYTE ***rastr1, BYTE ***rastr2, BYTE ***rastr)
+{
+	HEAD str;
+	int i, j, z, k;
+	printf("1)Соеденить справа 1->2");
+	printf("2)Соеденить слева 2->1");
+	scanf("%d", &k);
+	if (k == 1)
+		for (i = 0; i < str.h; i++)
+		{
+			for (j = 0; j < str.w / 2; j++)
+				for (z = 0; z < 3; z++)
+					rastr[i][j][z] = rastr1[i][j][z];
+			for (j = str.w / 2; j < str.w; j++)
+				for (z = 0; z < 3; z++)
+					rastr[i][j][z] = rastr2[i][j - str.w / 2][z];
+		}
+	else
+		for (i = 0; i < str.h; i++)
+		{
+			for (j = 0; j < str.w / 2; j++)
+				for (z = 0; z < 3; z++)
+					rastr[i][j][z] = rastr2[i][j][z];
+			for (j = str.w / 2; j < str.w; j++)
+				for (z = 0; z < 3; z++)
+					rastr[i][j][z] = rastr1[i][j - str.w / 2][z];
+		}
+}
+
+void write_rastr(FILE*fout, BYTE ***rastr)
+{
+	HEAD str;
+	fwrite(str.type, 2, 1, fout);
+	fwrite(&str.size, 4, 1, fout);
+	fwrite(&str.res, 4, 1, fout);
+	fwrite(&str.off, 4, 1, fout);
+	fwrite(&str.ssz, 4, 1, fout);
+	fwrite(&str.w, 4, 1, fout);
+	fwrite(&str.h, 4, 1, fout);
+	fwrite(str.end, 4, 7, fout);
+
+	for (int i = 0; i < str.h; i++)
+	{
+		for (int j = 0; j < str.w; j++)
+			fwrite(rastr[i][j], 3, 1, fout);
+		fwrite(str.pad, str.padding, 1, fout);
+	}
+}
+
+main()
+{
+	HEAD str;
+
+	FILE * fin1 = fopen("1.bmp", "r");
+	perror("Open file");
+	read_head(fin1);
+	fclose(fin1);
+	BYTE rastr1[str.h][str.w][str.p];
+	read_rastr(fin1, rastr1);
+
+	FILE * fin2 = fopen("2.bmp", "r");
+	perror("Open file");
+	read_head(fin2);
+	fclose(fin2);
+	BYTE rastr2[str.h][str.w][str.p];
+	read_rastr(fin2, rastr2);
+
+	FILE * fout = fopen("3.bmp", "w");
+	perror("Open file");
+	str.w = str.w * 2;
+	BYTE rastr[str.h][str.w][str, p];
+	work(rastr1, rastr2, rastr);
+	write_rastr(fout, rastr);
+	fclose(fout);
+	return 0;
+}
